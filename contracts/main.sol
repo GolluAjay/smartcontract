@@ -67,6 +67,8 @@ contract DonorRegistry {
 
     mapping(string => bytes32) public hospitalId;
 
+    mapping(bytes32 => string) public hopitalName;
+
     bytes32[] public hospitalIds;
 
     string[] public hospitalNames;
@@ -118,6 +120,7 @@ contract DonorRegistry {
         );
         hospitalIds.push(id);
         hospitalId[name] = id;
+        hopitalName[id] = name;
         hospitalNames.push(name);
     }
 
@@ -134,6 +137,10 @@ contract DonorRegistry {
         return id;
     }
 
+    function getHospitalName(bytes32 id) public view returns(string memory) {
+        return hopitalName[id];
+    }
+
     function HospitalEHRAdd(string memory Id, bytes32 id) public {
         require(donors[id].registered, "donor not registered");
         Hospital[id].DocumentTxId = Id;
@@ -146,6 +153,10 @@ contract DonorRegistry {
 
     function getHospitalDonors(bytes32 id) public view returns (bytes32[] memory) {
         return hospitalDonors[id];
+    }
+
+    function getHospitalRecipients(bytes32 id) public view returns (bytes32[] memory) {
+        return hospitalRecipients[id];
     }
 
     //For DONOR
@@ -191,14 +202,14 @@ contract DonorRegistry {
         donors[id].authorised = true;
     }
 
-    function unauthoriseDonor(bytes32 id, bytes32 hId) public {
-        require(
-            donors[id].hospital == hId,
-            "donor not belongs to this hospital"
-        );
-        require(donors[id].registered, "donor not registered");
+    function unauthoriseDonor(bytes32 id) public {
+        // require(
+        //     donors[id].hospital == hId,
+        //     "donor not belongs to this hospital"
+        // );
+        // require(donors[id].registered, "donor not registered");
         donors[id].authorised = false;
-        rollBackMatches(id);
+        // rollBackMatches(id);
     }
 
     function rollBackMatches(bytes32 donorId) public {
@@ -332,14 +343,14 @@ contract DonorRegistry {
         recipients[id].authorised = true;
     }
 
-    function unauthoriseRecipient(bytes32 id, bytes32 hId) public {
-        require(
-            recipients[id].hospital == hId,
-            "donor not belongs to this hospital"
-        );
-        require(recipients[id].registered, "recipient not registered");
+    function unauthoriseRecipient(bytes32 id) public {
+        // require(
+        //     recipients[id].hospital == hId,
+        //     "donor not belongs to this hospital"
+        // );
+        // require(recipients[id].registered, "recipient not registered");
         recipients[id].authorised = false;
-        rollBackMatches(recipientMatches[id]);
+        // rollBackMatches(recipientMatches[id]);
     }
 
     function recipientSignIn(string memory email, string memory password)
