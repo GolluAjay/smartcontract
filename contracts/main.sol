@@ -97,6 +97,10 @@ contract DonorRegistry {
 
     mapping(bytes32 => bytes32) public donorMatches;
 
+    bytes32[] public recipientmatches;
+
+    bytes32[] public donormatches;
+
     constructor() {
         contractCreator = msg.sender;
     }
@@ -149,6 +153,14 @@ contract DonorRegistry {
 
     function getHospitalNames() public view returns (string[] memory) {
         return hospitalNames;
+    }
+
+    function getDonorMatches() public view returns (bytes32[] memory) {
+        return donormatches;
+    }
+
+    function getRecipientMatchs() public view returns (bytes32[] memory) {
+        return recipientmatches;
     }
 
     function getHospitalDonors(bytes32 id) public view returns (bytes32[] memory) {
@@ -418,6 +430,7 @@ contract DonorRegistry {
                 j < DonorDetails[donorIds[i]].organsList.length;
                 j++
             ) {
+                require(recipients[id].hospital == donors[donorIds[i]].hospital, "not belongs to same hospital");
                 if (
                     keccak256(
                         abi.encodePacked(
@@ -436,6 +449,48 @@ contract DonorRegistry {
                         recipients[id].matchFound = true;
                         flag = true;
                         recipientMatches[id] = donorIds[i];
+                        donormatches.push(donorIds[i]);
+                        recipientmatches.push(id);
+                        donorMatches[donorIds[i]] = id;
+                        break;
+                    }
+                }
+            }
+            if (flag) {
+                break;
+            }
+        }
+    }
+
+        function matchOthersOrgans(bytes32 id, string memory organ) public {
+        require(!recipients[id].matchFound, "Not already exists");
+        bool flag = false;
+        for (uint256 i = 0; i < donorIds.length; i++) {
+            for (
+                uint256 j = 0;
+                j < DonorDetails[donorIds[i]].organsList.length;
+                j++
+            ) {
+                if (
+                    keccak256(
+                        abi.encodePacked(
+                            DonorDetails[donorIds[i]].organsList[j]
+                        )
+                    ) == keccak256(abi.encodePacked(organ))
+                ) {
+                    if (donors[donorIds[i]].authorised) {
+                        DonorDetails[donorIds[i]].matchOrgans.push(organ);
+                        DonorDetails[donorIds[i]].organsList[j] = DonorDetails[
+                            donorIds[i]
+                        ].organsList[
+                                DonorDetails[donorIds[i]].organsList.length - 1
+                            ];
+                        DonorDetails[donorIds[i]].organsList.pop();
+                        recipients[id].matchFound = true;
+                        flag = true;
+                        recipientMatches[id] = donorIds[i];
+                        donormatches.push(donorIds[i]);
+                        recipientmatches.push(id);
                         donorMatches[donorIds[i]] = id;
                         break;
                     }
